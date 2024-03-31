@@ -8,9 +8,9 @@
 #include <logger.hpp>
 #include <gdt.hpp>
 #include <memory/memory.hpp>
+#include <memory/memorylist.hpp>
 #include <kostream.hpp>
 #include <limine_services.hpp>
-#include <memory/pmm.hpp>
 #include <cpu/features.hpp>
 
 extern "C" void outb(int, char val);
@@ -38,6 +38,11 @@ void hcf() {
 extern "C" {
   int __cxa_atexit(void (*)(void *), void *, void *) { return 0; }
   void __cxa_pure_virtual() { hcf(); }
+}
+
+void printKernelAddress(){
+  mem::vaddr64_t kerneladdr = mem::getKernelVirtualAddress();
+  kout << "kernel vaddr::" << kerneladdr << ":: kernel paddr :: " << mem::vaddrToPaddr(kerneladdr) << '\n';
 }
 
 // Extern declarations for global constructors array.
@@ -77,24 +82,27 @@ extern "C" void _start() {
   }
 
   mem::printMemoryMap();
-  //mem::printPageFrames();
-  mem::vaddr64_t kerneladdr = mem::getKernelVirtualAddress();
-  kout << kerneladdr << '\n';
-  mem::pmm yay{};
-  mem::vaddr64_t pmmaddr = reinterpret_cast<mem::vaddr64_t>(&yay);
+  printKernelAddress();
+
   //kout << pmmaddr << '\n';
 
   features::probecr3();
   kout << intmode::hex << features::getPML4() << '\n';
 
+  features::probePhysicalWidth();
   features::probecr4();
   features::probecr0();
   //features::disablePaging();
   //features::probecr0();
+  //mem::printMemoryMap();
   mem::paddr64_t paddr = 0x4e000;
   char* pchar = reinterpret_cast<char*>(mem::paddrToVaddr(paddr));
   *pchar = 'C';
   //kout << *pchar << '\n';
+
+  mem::memoryManager mm{};
+  mm.printEntries();
+
   // done now, hang around a bit :D
   hcf();
 }

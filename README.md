@@ -2,7 +2,9 @@
 
 PenelopeOS is another pitiful attempt at building an operating system, using the C++ programming language. It is targeted towards x86_64 processors. 
 
-The operating system is cloned from my Chisaka, however this operating system follows the design considerations of Xinu.
+The operating system is cloned from my Chisaka, however this operating system follows the design considerations of Xinu,
+and as such is much more simpler. I aim to use this to build foundational skills as xinu does not implement many
+advanced features such as memory paging / swapping.
 
 ## Building and Running
 
