@@ -45,6 +45,55 @@ void printKernelAddress(){
   kout << "kernel vaddr::" << kerneladdr << ":: kernel paddr :: " << mem::vaddrToPaddr(kerneladdr) << '\n';
 }
 
+void* operator new(std::size_t n){
+  return reinterpret_cast<void*>(mem::pmm.allocHeap(n));
+}
+
+void playMemory(){
+  mem::memoryManager mm{};
+  mm.printEntries();
+  int* one = reinterpret_cast<int*>(mm.allocHeap(5));
+  mm.printEntries();
+  int* two = reinterpret_cast<int*>(mm.allocHeap(128));
+  mm.printEntries();
+  mm.free(two);
+  mm.printEntries();
+  kout << "----\n";
+  int* three = reinterpret_cast<int*>(mm.allocStack(32));
+  mm.printEntries();
+}
+
+void playfree(){
+  mem::pmm.printEntries();
+  int* one = reinterpret_cast<int*>(mem::pmm.allocHeap(10));
+  *one = 1;
+  kout << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
+  long* byte = reinterpret_cast<long*>(mem::pmm.allocHeap(1));
+  *byte= 102101;
+  kout << reinterpret_cast<mem::vaddr64_t>(byte) << '\n';
+  mem::pmm.printEntries();
+
+  /*
+  mem::pmm.printEntries();
+  //mem::pmm.allocHeap(10);
+  int* one = new int{1};
+
+  kout << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
+  char* byte = new char{'c'};
+  kout << reinterpret_cast<mem::vaddr64_t>(byte) << '\n';
+  mem::pmm.printEntries();
+  */
+
+  /*
+  int* two = new int{2};
+  int* three = new int{3};
+  int* four = new int{4};
+  */
+  //kout << intmode::hex << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
+       //<< reinterpret_cast<mem::vaddr64_t>(two) << '\n'
+       //<< reinterpret_cast<mem::vaddr64_t>(three) << '\n';
+}
+
 // Extern declarations for global constructors array.
 extern void (*__init_array[])();
 extern void (*__init_array_end[])();
@@ -86,22 +135,26 @@ extern "C" void _start() {
 
   //kout << pmmaddr << '\n';
 
+  /*
   features::probecr3();
   kout << intmode::hex << features::getPML4() << '\n';
-
   features::probePhysicalWidth();
   features::probecr4();
   features::probecr0();
+  */
+
   //features::disablePaging();
   //features::probecr0();
   //mem::printMemoryMap();
+  /*
   mem::paddr64_t paddr = 0x4e000;
   char* pchar = reinterpret_cast<char*>(mem::paddrToVaddr(paddr));
   *pchar = 'C';
   //kout << *pchar << '\n';
+  */
 
-  mem::memoryManager mm{};
-  mm.printEntries();
+  //playMemory();
+  playfree();
 
   // done now, hang around a bit :D
   hcf();
