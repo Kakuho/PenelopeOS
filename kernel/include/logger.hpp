@@ -1,6 +1,7 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include <concepts>
 #include <cstdint>
 #include <cstdlib>
 
@@ -38,7 +39,9 @@ class logger{
       }
     }
 
-    void log(std::uint64_t x){
+    template<typename T>
+      requires std::unsigned_integral<T>
+    void log(T x){
       char buffer[30];
       int index = 0;
       if(x == 0){
@@ -53,7 +56,6 @@ class logger{
       for(int i = index - 1; i >= 0; i--){
         outb(m_port, buffer[i]);
       }
-
     }
 
     void log_hex(std::uint64_t x){

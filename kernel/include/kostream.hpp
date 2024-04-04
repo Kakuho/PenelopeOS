@@ -2,6 +2,7 @@
 #define KOSTREAM_HPP
 
 #include <logger.hpp>
+#include <concepts>
 
 enum class intmode{dec, hex, bin};
 
@@ -15,7 +16,12 @@ class kostream{
       return *this;
     }
 
-    kostream& operator<<(std::uint64_t i){
+    // it would be good to construct a member function template 
+    // where we constrain type parameter to std::uintx_t
+    // such that x \in {8, 16, 32, 64}
+    template<typename T>
+      requires std::unsigned_integral<T>
+    kostream& operator<<(T i){
       switch(m_mode){
         case intmode::dec:
           serial_logger.log(i); 
