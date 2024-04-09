@@ -1,6 +1,8 @@
 #ifndef GDT_HPP
 #define GDT_HPP
 #include <cstdint>
+#include <memory/memory.hpp>
+#include <kostream.hpp>
 
 namespace gdt{
   // the os shall operate in a long / flat mode. This is protected flat mode 3.2.2 in the intel manual
@@ -50,7 +52,6 @@ namespace gdt{
     std::uint8_t iopb;
   };
 
-
   // intel vol3a8.2.3 tss descriptor in 64bit mode
   struct __attribute__((packed)) TSSDescriptor{
     std::uint16_t limit0;
@@ -72,6 +73,9 @@ namespace gdt{
     SegmentDescriptor user_data;
     SegmentDescriptor tss;
   };
+  
+  SegmentDescriptor constructSegtor(void* address, std::uint16_t limit, 
+      std::uint8_t accessbyte, std::uint8_t flagslimit);
 
   bool initialisegdt(GdtTable& _gdt);
 } // namespace gdt
