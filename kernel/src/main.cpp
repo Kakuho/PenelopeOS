@@ -6,11 +6,12 @@
 #include <cassert>
 #include <limine.h>
 #include <logger.hpp>
-#include <gdt.hpp>
+#include <cpu/gdt.hpp>
 #include <memory/memory.hpp>
 #include <memory/memorylist.hpp>
 #include <kostream.hpp>
 #include <limine_services.hpp>
+#include <cpu/interrupts.hpp>
 #include <cpu/features.hpp>
 
 extern "C" void outb(int, char val);
@@ -45,8 +46,17 @@ void printKernelAddress(){
   kout << "kernel vaddr::" << kerneladdr << ":: kernel paddr :: " << mem::vaddrToPaddr(kerneladdr) << '\n';
 }
 
+
 void* operator new(std::size_t n){
-  return reinterpret_cast<void*>(mem::pmm.allocHeap(n));
+  return mem::pmm.allocHeap(n);
+}
+
+void operator delete(void* vaddr) noexcept{
+  mem::pmm.free(vaddr);
+}
+
+void operator delete(void* vaddr, std::size_t size) noexcept{
+  mem::pmm.free(vaddr);
 }
 
 void playMemory(){
@@ -64,35 +74,91 @@ void playMemory(){
 }
 
 void playfree(){
+  // mem1 
+  // mem2 
+  // mem3
   mem::pmm.printEntries();
-  int* one = reinterpret_cast<int*>(mem::pmm.allocHeap(10));
-  *one = 1;
-  kout << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
-  long* byte = reinterpret_cast<long*>(mem::pmm.allocHeap(1));
-  *byte= 102101;
-  kout << reinterpret_cast<mem::vaddr64_t>(byte) << '\n';
+  char* pch1 = reinterpret_cast<char*>(mem::pmm.allocHeap(10));
   mem::pmm.printEntries();
-
-  /*
+  char* pch2 = reinterpret_cast<char*>(mem::pmm.allocHeap(10));
   mem::pmm.printEntries();
-  //mem::pmm.allocHeap(10);
-  int* one = new int{1};
-
-  kout << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
-  char* byte = new char{'c'};
-  kout << reinterpret_cast<mem::vaddr64_t>(byte) << '\n';
+  char* pch3 = reinterpret_cast<char*>(mem::pmm.allocHeap(10));
   mem::pmm.printEntries();
-  */
-
-  /*
-  int* two = new int{2};
-  int* three = new int{3};
-  int* four = new int{4};
-  */
-  //kout << intmode::hex << reinterpret_cast<mem::vaddr64_t>(one) << '\n';
-       //<< reinterpret_cast<mem::vaddr64_t>(two) << '\n'
-       //<< reinterpret_cast<mem::vaddr64_t>(three) << '\n';
+  char* pch4 = reinterpret_cast<char*>(mem::pmm.allocHeap(10));
+  mem::pmm.printEntries();
+  // pch1
+  // pch2
+  // pch3
+  // pch4
+  // mem1
+  // mem2
+  // mem3
+  mem::pmm.free(pch3);
+  // pch1
+  // pch2
+  // mem1
+  // pch4
+  // mem2
+  // mem3
+  // mem4
+  mem::pmm.printEntries();
+  mem::pmm.free(pch1);
+  // mem1
+  // pch2
+  // mem2
+  // pch4
+  // mem3
+  // mem4
+  // mem5
+  mem::pmm.printEntries();
 }
+
+class A{
+  int a;
+  int b;
+  long c;
+};
+
+void playfree2(){
+  // mem1 
+  // mem2 
+  // mem3
+  mem::pmm.printEntries();
+  A* pch1 = new A;
+  mem::pmm.printEntries();
+  A* pch2 = new A;
+  mem::pmm.printEntries();
+  A* pch3 = new A;
+  mem::pmm.printEntries();
+  A* pch4 = new A;
+  mem::pmm.printEntries();
+  // pch1
+  // pch2
+  // pch3
+  // pch4
+  // mem1
+  // mem2
+  // mem3
+  delete pch3;
+  // pch1
+  // pch2
+  // mem1
+  // pch4
+  // mem2
+  // mem3
+  // mem4
+  mem::pmm.printEntries();
+  delete pch1;
+  // mem1
+  // pch2
+  // mem2
+  // pch4
+  // mem3
+  // mem4
+  // mem5
+  mem::pmm.printEntries();
+}
+
 
 // Extern declarations for global constructors array.
 extern void (*__init_array[])();
@@ -130,8 +196,7 @@ extern "C" void _start() {
       //kout << static_cast<std::uint32_t>(fb_ptr[i]);
   }
 
-  mem::printMemoryMap();
-  printKernelAddress();
+  gdt::initialiseGDT();
 
   //kout << pmmaddr << '\n';
 
@@ -154,7 +219,20 @@ extern "C" void _start() {
   */
 
   //playMemory();
-  playfree();
+  //playfree();
+  
+  mem::printMemoryMap();
+  int k{};
+  inter::parseAddress(&k);
+  if(inter::isDoTripleFault()){
+    kout << "triplefaulted" << '\n';
+  }
+  else{
+    kout << "we good " << '\n';
+  }
+
+  kout << "have i left the interrupt?" << '\n';
+
 
   // done now, hang around a bit :D
   hcf();

@@ -5,13 +5,17 @@
 #include <kostream.hpp>
 
 namespace gdt{
-  // the os shall operate in a long / flat mode. This is protected flat mode 3.2.2 in the intel manual
-  // N.B: limine puts us into long mode (referred to as 64 bit mode in the intel docs), 
-  //      thus my data structures below assumes the 64 bit mode.
+  
+  extern "C" void load_gdt(void* address);
+
+  // the os shall operate in a long / flat mode. This is 
+  // protected flat mode 3.2.2 in the intel manual
+  // N.B: limine puts us into long mode (referred to as 64-bit mode in the intel 
+  // docs), thus my data structures below assumes the 64-bit mode.
 
   struct __attribute__((packed)) GdtDescriptor{
-    std::uint16_t size;         // size of gdt - 1
     std::uint64_t offset;       // linear address of the GDT - long mode
+    std::uint16_t limit;        // size of gdt - 1
   };
 
   // https://wiki.osdev.org/Global_Descriptor_Table - segment descriptor
@@ -27,29 +31,33 @@ namespace gdt{
     std::uint8_t  base2;
   };
 
+  SegmentDescriptor constructSegtor(
+      void* base_address, std::uint16_t limit, 
+      std::uint8_t accessbyte, std::uint8_t flagslimit);
+
   // https://wiki.osdev.org/Task_State_Segment long mode
   // intel manual vol3a 8.7 - tss in 64bit mode
   struct __attribute__((packed)) TSS{
-    std::uint16_t reserved0;
+    std::uint32_t reserved0;
     // RSPs - used to store stack pointers.
-    std::uint32_t rsp0;
-    std::uint32_t rsp1;
-    std::uint32_t rsp3;
+    std::uint64_t rsp0;
+    std::uint64_t rsp1;
+    std::uint64_t rsp3;
     // dead zone
-    std::uint32_t reserved1;
+    std::uint64_t reserved1;
     // interrupt stack tables
-    std::uint32_t ist1;
-    std::uint32_t ist2;
-    std::uint32_t ist3;
-    std::uint32_t ist4;
-    std::uint32_t ist5;
-    std::uint32_t ist6;
-    std::uint32_t ist7;
+    std::uint64_t ist1;
+    std::uint64_t ist2;
+    std::uint64_t ist3;
+    std::uint64_t ist4;
+    std::uint64_t ist5;
+    std::uint64_t ist6;
+    std::uint64_t ist7;
     // dead zone
     std::uint64_t reserved3;
     std::uint8_t  reserved4;
     // IO Map Base Address
-    std::uint8_t iopb;
+    std::uint8_t iopbm;
   };
 
   // intel vol3a8.2.3 tss descriptor in 64bit mode
@@ -60,9 +68,14 @@ namespace gdt{
     std::uint8_t  accessbyte;  // same byte packed as the segment descriptor
     std::uint8_t  flags_limit; // same byte packed as the segment descriptor, 
     std::uint8_t  base2;
+    // second entry of tss's gdt entry
     std::uint32_t base3;
-    std::uint32_t reserved;
+    std::uint8_t reserved0;
+    std::uint8_t res1_zeros;
+    std::uint16_t res2;
   };
+
+  TSSDescriptor constructTsstor(void* base_address, std::uint32_t limit);
 
   struct __attribute__((packed)) GdtTable{
     // I treat the whole linear space.
@@ -71,13 +84,17 @@ namespace gdt{
     SegmentDescriptor kernel_data;
     SegmentDescriptor user_code;
     SegmentDescriptor user_data;
-    SegmentDescriptor tss;
+    TSSDescriptor tss;
   };
-  
-  SegmentDescriptor constructSegtor(void* address, std::uint16_t limit, 
-      std::uint8_t accessbyte, std::uint8_t flagslimit);
 
-  bool initialisegdt(GdtTable& _gdt);
+  extern std::uint16_t tablesize;
+
+  void setupGdt(GdtTable& _gdt);
+  bool initialiseGDT();
+
+  extern TSS tss;
+  extern GdtTable table;
+  extern GdtDescriptor descriptor;
 } // namespace gdt
 
 #endif
