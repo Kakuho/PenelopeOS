@@ -4,9 +4,9 @@
 #include <memory/memory.hpp>
 #include <kostream.hpp>
 
+extern "C" void load_gdt(void* address);
+
 namespace gdt{
-  
-  extern "C" void load_gdt(void* address);
 
   // the os shall operate in a long / flat mode. This is 
   // protected flat mode 3.2.2 in the intel manual
@@ -14,8 +14,8 @@ namespace gdt{
   // docs), thus my data structures below assumes the 64-bit mode.
 
   struct __attribute__((packed)) GdtDescriptor{
-    std::uint64_t offset;       // linear address of the GDT - long mode
     std::uint16_t limit;        // size of gdt - 1
+    std::uint64_t offset;       // linear address of the GDT - long mode
   };
 
   // https://wiki.osdev.org/Global_Descriptor_Table - segment descriptor
