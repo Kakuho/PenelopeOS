@@ -12,6 +12,12 @@ extern "C" void sayHi(int x){
   kout << "the interrupt works now bros" << '\n';
 }
 
+extern "C" void generalIRQ(int x){
+  kout << "AN INTERRUPT HAS OCCURED" << '\n'
+       << "interrupt code: " << x << '\n'
+       << "END OF HANDLING" << '\n';
+}
+
 namespace idt{
   idtGate constructIdtGate(void(*handler_address)()){
     // similiar to call gates
@@ -19,14 +25,16 @@ namespace idt{
     std::uint16_t vaddr0 = vaddr & (0xFFFF);
     std::uint16_t vaddr1 = (vaddr & (0xFFFFull << 0x10)) >> 0x10 ;
     std::uint32_t vaddr2 = (vaddr & (0xFFFF'FFFFul << 0x20)) >> 0x20;
-    kout  << "vaddr: "  << vaddr << '\n'
+    kout  << "Constructing IDT GATE: " << '\n'
+          << "vaddr: "  << vaddr << '\n'
           << "vaddr0: " << vaddr0 << '\n'
           << "vaddr1: " << vaddr1 << '\n'
           << "vaddr2: " << vaddr2 << '\n';
     return idtGate{
       .offset0 = vaddr0,
-      .segment_selector = 0x08,  // we only want to select the kernel code segment
-      .p_dpl_gatetype_ist = 0b1000'1110'0000'0000,
+      .segment_selector = 0b0101'000,  
+            // we only want to select the kernel code segment
+      .p_dpl_gatetype_ist = 0b1'00'0'1110'00000'000,
       .offset1 = vaddr1,
       .offset2 = vaddr2,
       .rsv = 0
@@ -39,13 +47,21 @@ namespace idt{
 
   void initialiseIdt(){
     // set the descriptor
-    idtor.limit = sizeof(idt_table);
+    idtor.limit = sizeof(idt_table)-1;
     idtor.offset = reinterpret_cast<mem::vaddr64_t>(&idt_table);
     // set the table
     kout << intmode::hex << reinterpret_cast<mem::vaddr64_t>(&isr_0) << '\n';
-    for (std::uint8_t i = 0; i < 32; i++){
-        setIdtEntry(i, &isr_0);
+    for (std::uint8_t i = 0; i < 34; i++){
+      /*
+      if(i == 13){
+        setIdtEntry(i, reinterpret_cast<void(*)()>(isr[i]));
+      }
+      else
+        setIdtEntry(i, reinterpret_cast<void(*)()>(isr[1]));
+      */
+      setIdtEntry(i, reinterpret_cast<void(*)()>(isr[i]));
     }
+
     kout << "idt descriptor location: " 
          << intmode::hex << reinterpret_cast<std::uint64_t>(&idtor) << '\n';
     load_idt(&idtor);

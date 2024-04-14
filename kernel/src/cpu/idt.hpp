@@ -6,6 +6,8 @@ extern "C" void load_idt(void* idtor_address);
 extern "C" void enable_interrupts();
 extern "C" void isr_0();
 extern "C" void sayHi(int x);
+extern "C" void(*isr[])();
+extern "C" void(*isr[])();
 
 namespace idt{
   // https://wiki.osdev.org/Interrupt_Descriptor_Table
@@ -32,6 +34,4 @@ namespace idt{
 
   extern idtGate idt_table[256];
   extern idtDescriptor idtor;
-
-
 }

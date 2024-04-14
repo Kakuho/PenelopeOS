@@ -5,6 +5,8 @@
 #include <kostream.hpp>
 
 extern "C" void load_gdt(void* address);
+extern "C" void load_tsr(std::uint16_t index);
+extern "C" void reload_segments();
 
 namespace gdt{
 

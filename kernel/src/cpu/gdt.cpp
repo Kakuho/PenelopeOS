@@ -12,8 +12,13 @@ namespace gdt{
     // parse the virtual address
     mem::vaddr64_t vaddr = reinterpret_cast<mem::vaddr64_t>(base_address);
     std::uint16_t vaddr0 = vaddr & 0xFFFF;
-    std::uint8_t vaddr1 = vaddr & 0xFFul << 0x10;
-    std::uint8_t vaddr2 = vaddr & 0xFFul << 0x16;
+    std::uint8_t vaddr1 = vaddr & (0xFFul << 0x10) >> 0x10;
+    std::uint8_t vaddr2 = vaddr & (0xFFul << 0x18) >> 0x18;
+    kout << "constructin segtor: " << '\n'
+         << "vaddr: " << vaddr << '\n'
+         << "vaddr0: " << vaddr0 << '\n'
+         << "vaddr1: " << vaddr1 << '\n'
+         << "vaddr2: " << vaddr2 << '\n';
     return SegmentDescriptor{
       .limit0 = limit,
       .base0 = vaddr0,
@@ -28,12 +33,18 @@ namespace gdt{
     // parse the vitrual address
     mem::vaddr64_t vaddr = reinterpret_cast<mem::vaddr64_t>(base_address);
     std::uint16_t vaddr0 = vaddr & 0xFFFF;
-    std::uint8_t vaddr1 = vaddr & 0xFFul << 0x10;
-    std::uint8_t vaddr2 = vaddr & 0xFFul << 0x16;
-    std::uint16_t vaddr3 = vaddr & 0xFFFFFFFFul << 0x20;
+    std::uint8_t vaddr1 = (vaddr & (0xFFul << 0x10)) >> 0x10;
+    std::uint8_t vaddr2 = (vaddr & (0xFFul << 0x18)) >> 0x18;
+    std::uint32_t vaddr3 = (vaddr & (0xFFFFFFFFul << 0x20)) >> 0x20;
+    kout << intmode::hex << "in constructTsstor" << '\n'
+         << "vaddr: " << vaddr << '\n'
+         << "vaddr0: " << vaddr0 << '\n'
+         << "vaddr1: " << vaddr1 << '\n'
+         << "vaddr2: " << vaddr2 << '\n'
+         << "vaddr3: " << vaddr3 << '\n';
     // parse the limit
     std::uint16_t limit0 = limit & 0xFFFF;
-    std::uint8_t flag_limit1 = 0 | (limit & 0xF << 0x10);
+    std::uint8_t flag_limit1 = (limit & (0xF << 0x10)) >> 0x10; // top byte is 0
     return TSSDescriptor{
       .limit0 = limit0,
       .base0 = vaddr0,
@@ -49,11 +60,12 @@ namespace gdt{
   }
 
   void setupGdt(GdtTable& _gdt){
-    _gdt.nullseg     = constructSegtor(0, 0, 0, 0);
-    _gdt.kernel_code = constructSegtor(0, 0xFFFF, 0b1001'1011, 0b1010'1111);
-    _gdt.kernel_data = constructSegtor(0, 0xFFFF, 0b1001'0011, 0b1100'1111);
-    _gdt.user_code   = constructSegtor(0, 0xFFFF, 0b1111'1011, 0b1010'1111);
-    _gdt.user_data   = constructSegtor(0, 0xFFFF, 0b1111'0011, 0b1100'1111);
+    _gdt.nullseg     = constructSegtor(0, 0, 0, 0);             
+                                                                // flaglimit
+    _gdt.kernel_code = constructSegtor(0, 0xFFFF, 0b1001'1010, 0b1010'1111);
+    _gdt.kernel_data = constructSegtor(0, 0xFFFF, 0b1001'0010, 0b1100'1111);
+    _gdt.user_code   = constructSegtor(0, 0xFFFF, 0b1111'1010, 0b1010'1111);
+    _gdt.user_data   = constructSegtor(0, 0xFFFF, 0b1111'0010, 0b1100'1111);
     _gdt.tss         = constructTsstor(&tss, sizeof(tss)-1);
   }
 
@@ -62,6 +74,8 @@ namespace gdt{
     descriptor.limit = tablesize;
     descriptor.offset = reinterpret_cast<std::uint64_t>(&gdt::table); 
     load_gdt(&descriptor);
+    load_tsr(0b00101'000);
+    reload_segments();
     return true;
   }
 
