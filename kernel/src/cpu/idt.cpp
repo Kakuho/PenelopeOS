@@ -18,6 +18,27 @@ extern "C" void generalIRQ(int x){
        << "END OF HANDLING" << '\n';
 }
 
+extern "C" void contextSwitchISR(void* stackaddr){
+  /*
+  mem::vaddr64_t saddr = reinterpret_cast<mem::vaddr64_t>(stackaddr);
+  std::uint64_t* prdx = reinterpret_cast<std::uint64_t*>(saddr - 8);
+  std::uint64_t* prcx = reinterpret_cast<std::uint64_t*>(saddr - 16);
+  std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 24);
+  */
+  mem::vaddr64_t* saddr = reinterpret_cast<mem::vaddr64_t*>(stackaddr);
+  std::uint64_t* prdx = reinterpret_cast<std::uint64_t*>(saddr - 1);
+  std::uint64_t* prcx = reinterpret_cast<std::uint64_t*>(saddr - 2);
+  std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 3);
+  kout << "AN INTERRUPT HAS OCCURED" << '\n'
+       //<< saddr << '\n'
+       << reinterpret_cast<mem::vaddr64_t>(saddr) << '\n'
+       << "rdx = " << *prdx << '\n'
+       << "rcx = " << *prcx << '\n'
+       << "rflags = " << *prflags << '\n'
+       << "we tryna to ctxt sw" << '\n'
+       << "END OF HANDLING" << '\n';
+}
+
 namespace idt{
   idtGate constructIdtGate(void(*handler_address)()){
     // similiar to call gates
@@ -33,7 +54,7 @@ namespace idt{
     return idtGate{
       .offset0 = vaddr0,
       .segment_selector = 0b0101'000,  
-            // we only want to select the kernel code segment
+            // we only want to select the kernel code segment -> check limine protocol.md
       .p_dpl_gatetype_ist = 0b1'00'0'1110'00000'000,
       .offset1 = vaddr1,
       .offset2 = vaddr2,
