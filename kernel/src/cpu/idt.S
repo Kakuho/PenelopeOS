@@ -220,25 +220,29 @@ isr_33:
 .globl isr_ctxtsw
 isr_ctxtsw:
   cli
+  // maybe we can push %rdi, to save its value, then move stack pointer into 
+  // %rdi.
+  pushq %rdi // confused on pushing stack pointer
   movq %rsp, %rdi
   // pushing
   pushq %rax
   pushq %rcx
   pushq %rdx
   pushq %rbx
-  pushq %rdi // confused on pushing stack pointer
   pushq %rbp
   pushq %rsi
   pushfq
+  // handling
   call contextSwitchISR
+  // popping
   popfq
   popq %rsi
   popq %rbp
-  popq %rdi // confused on pushing stack pointer
   popq %rbx
   popq %rdx
   popq %rcx
   popq %rax
+  popq %rdi // confused on pushing stack pointer
   iretq
 
 .globl isr
@@ -258,7 +262,7 @@ isr:
   .quad isr_11
   .quad isr_12
   .quad isr_13
-  .quad isr_14
+  .quad isr_ctxtsw
   .quad isr_15
   .quad isr_16
   .quad isr_17

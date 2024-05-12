@@ -15,7 +15,7 @@ extern "C"{
 
 
 namespace features{
-  void probeMemory();
+  void probePhysicalWidth();
 
   // intel vol3a.4.1.1
 

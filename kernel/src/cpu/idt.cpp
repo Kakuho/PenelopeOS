@@ -25,18 +25,31 @@ extern "C" void contextSwitchISR(void* stackaddr){
   std::uint64_t* prcx = reinterpret_cast<std::uint64_t*>(saddr - 16);
   std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 24);
   */
-  mem::vaddr64_t* saddr = reinterpret_cast<mem::vaddr64_t*>(stackaddr);
-  std::uint64_t* prdx = reinterpret_cast<std::uint64_t*>(saddr - 1);
+  std::uint64_t* saddr = reinterpret_cast<std::uint64_t*>(stackaddr);
+  // above the stack pointer
+  //std::uint64_t* prsp = reinterpret_cast<std::uint64_t*>(saddr + 1);
+  std::uint64_t* prdi = reinterpret_cast<std::uint64_t*>(saddr);
+  // below the stack pointer
+  std::uint64_t* prax = reinterpret_cast<std::uint64_t*>(saddr - 1);
   std::uint64_t* prcx = reinterpret_cast<std::uint64_t*>(saddr - 2);
-  std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 3);
+  std::uint64_t* prdx = reinterpret_cast<std::uint64_t*>(saddr - 3);
+  std::uint64_t* prbx = reinterpret_cast<std::uint64_t*>(saddr - 4);
+  std::uint64_t* prbp = reinterpret_cast<std::uint64_t*>(saddr - 5);
+  std::uint64_t* prsi = reinterpret_cast<std::uint64_t*>(saddr - 6);
+  std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 7);
   kout << "AN INTERRUPT HAS OCCURED" << '\n'
-       //<< saddr << '\n'
        << reinterpret_cast<mem::vaddr64_t>(saddr) << '\n'
-       << "rdx = " << *prdx << '\n'
+       << "rax = " << *prax << '\n'
+       << "rbx = " << *prbx << '\n'
        << "rcx = " << *prcx << '\n'
+       << "rdx = " << *prdx << '\n'
+       << "rsi = " << *prsi << '\n'
+       << "rdi = " << *prdi << '\n'
+       << "rbp = " << *prbp << '\n'
+       //<< "rsp = " << *prsp << '\n'
        << "rflags = " << *prflags << '\n'
-       << "we tryna to ctxt sw" << '\n'
-       << "END OF HANDLING" << '\n';
+       << "we tryna to ctxt sw" << '\n';
+  kout << "END OF HANDLING" << '\n';
 }
 
 namespace idt{
@@ -73,13 +86,6 @@ namespace idt{
     // set the table
     kout << intmode::hex << reinterpret_cast<mem::vaddr64_t>(&isr_0) << '\n';
     for (std::uint8_t i = 0; i < 34; i++){
-      /*
-      if(i == 13){
-        setIdtEntry(i, reinterpret_cast<void(*)()>(isr[i]));
-      }
-      else
-        setIdtEntry(i, reinterpret_cast<void(*)()>(isr[1]));
-      */
       setIdtEntry(i, reinterpret_cast<void(*)()>(isr[i]));
     }
 

@@ -2,6 +2,7 @@
 #define KOSTREAM_HPP
 
 #include <logger.hpp>
+#include <string>
 #include <concepts>
 
 enum class intmode{dec, hex, bin};
@@ -49,6 +50,14 @@ class kostream{
       serial_logger.log(st);
       return *this;
     }
+
+    kostream& operator<<(std::string st){
+      for(int i = 0; i < st.size(); i++){
+        serial_logger.log(st[i]);
+      }
+      return *this;
+    }
+
 
     kostream& operator<<(intmode im){
       switch(im){

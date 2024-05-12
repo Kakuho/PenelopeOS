@@ -59,6 +59,7 @@ override SHARED_FLAGS := \
 		-nostdlib \
     -fno-lto \
     -fPIE \
+		-fPIC \
     -m64 \
     -march=x86-64 \
     -mno-80387 \
@@ -92,11 +93,19 @@ override LDFLAGS += \
     -m elf_x86_64 \
     -nostdlib \
     -static \
-    -pie \
     --no-dynamic-linker \
     -z text \
     -z max-page-size=0x1000 \
     -T linker.ld
+
+#override LDFLAGS += \
+    #-m elf_x86_64 \
+    #-nostdlib \
+    #-static \
+    #--no-dynamic-linker \
+    #-z text \
+    #-z max-page-size=0x1000 \
+    #-T linker.ld
 
 # Internal nasm flags that should not be changed by the user.
 override NASMFLAGS += \

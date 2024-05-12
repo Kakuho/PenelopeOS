@@ -144,6 +144,7 @@ namespace mem{
     // finish the bookkeeping, write data at the memory chunks
     allocated->next=nullptr;
     allocated->length = allocsize;
+    // update mptr to point to the 
     mptr->length = mptr->length - allocsize;
     return reinterpret_cast<mem::vaddr64_t>(allocated+1);
   }

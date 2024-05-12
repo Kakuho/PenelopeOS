@@ -1,0 +1,23 @@
+# ignored by cpp template
+
+/limine
+/ovmf
+*.iso
+*.hdd
+
+# ignore .txt files
+
+*.txt
+
+# ignore misc repositories
+
+/scratch
+/notes
+/dumps
+*/archive/*
+*.map
+
+# ignore .swps
+
+*.swp
+.ycm_extra_conf.py

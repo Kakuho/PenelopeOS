@@ -13,6 +13,10 @@
 #include <limine_services.hpp>
 #include <cpu/interrupts.hpp>
 #include <cpu/features.hpp>
+#include <cpu/idt.hpp>
+#include "proc/queuetable.hpp"
+#include "disk/ataio.hpp"
+#include "./misc/ascii.hpp"
 
 extern "C" void outb(int, char val);
 extern "C" unsigned int memory_low();
@@ -159,6 +163,11 @@ void playfree2(){
   mem::pmm.printEntries();
 }
 
+void startup(){
+  PrintTwixie();
+  kout << "Welcome to PenelopeOS! I hope you enjoy your stay! :D\n";
+}
+
 
 // Extern declarations for global constructors array.
 extern void (*__init_array[])();
@@ -196,11 +205,12 @@ extern "C" void _start() {
       //kout << static_cast<std::uint32_t>(fb_ptr[i]);
   }
 
-  gdt::initialiseGDT();
-
-  //kout << pmmaddr << '\n';
+  //gdt::initialiseGDT();
+  idt::initialiseIdt();
 
   /*
+  kout << pmmaddr << '\n';
+
   features::probecr3();
   kout << intmode::hex << features::getPML4() << '\n';
   features::probePhysicalWidth();
@@ -222,18 +232,20 @@ extern "C" void _start() {
   //playfree();
   
   mem::printMemoryMap();
-  int k{};
-  inter::parseAddress(&k);
-  if(inter::isDoTripleFault()){
-    kout << "triplefaulted" << '\n';
-  }
-  else{
-    kout << "we good " << '\n';
-  }
+  /*
+  using proc::queue::_queueTable;
+  proc::queue::qid_t newq = _queueTable.newQueue();
+  _queueTable.pushQueue(newq, 3);
+  _queueTable.printQueue(newq);
+  */
 
-  kout << "have i left the interrupt?" << '\n';
-
-
+  /*
+  clear_interrupts();
+  invokeinterrupt5();
+  invokeinterrupt33();
+  */
+  startup();
+  //Disk::InitialiseAtaPio(0, 0);
   // done now, hang around a bit :D
   hcf();
 }

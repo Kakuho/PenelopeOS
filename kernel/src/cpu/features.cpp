@@ -1,6 +1,6 @@
 #include "features.hpp"
 
-void features::probeMemory(){
+void features::probePhysicalWidth(){
   //cpuid normally references 32 bit registers eax, ebx ect.
   std::uint32_t eax, ebx, ecx, edx;
   // probe physaddr
