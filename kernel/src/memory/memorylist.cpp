@@ -1,11 +1,15 @@
 #include "memorylist.hpp"
-#include "memory.hpp"
 
-namespace mem{
-  memoryList::memoryList(){
-    limine_memmap_entry** entries = req::memorymap_request.response->entries;
-    std::uint64_t mem_entries = req::memorymap_request.response->entry_count;
-    std::uint64_t hhdm_offset = req::hhdm_request.response->offset;
+namespace memory::list{
+  using namespace limine;
+
+  memoryBlock head{};
+
+  void InitialiseHeaders(){
+    kout << "initialising memory chunk headers...\n";
+    limine_memmap_entry** entries = requests::memorymap_request.response->entries;
+    std::uint64_t mem_entries = requests::memorymap_request.response->entry_count;
+    std::uint64_t hhdm_offset = requests::hhdm_request.response->offset;
     // preallocate a contiguous block of memory for the useable 
     // blocks
     std::array<memoryEntry, 20> buffer;
@@ -13,6 +17,8 @@ namespace mem{
     // populate the index
     for(std::size_t j = 0; j < mem_entries; j++){
       if(entries[j]->type == LIMINE_MEMMAP_USABLE){
+        kout << "found a usable memory block, physaddr :: " << entries[j]->base
+             << " :: length :: " << entries[j]->length << '\n';
         buffer[index++] = memoryEntry{
           .base = entries[j]->base, 
           .length = entries[j]->length
@@ -20,28 +26,28 @@ namespace mem{
       }
     }
     // construct the linked list
-    for(int i = 0; i < index; i++){
+    for(std::uint64_t i = 0; i < index; i++){
       // physical addresses of the available memories
-      mem::paddr64_t base = buffer[i].base;
-      mem::paddr64_t nextBase = buffer[i+1].base;
+      paddr64_t base = buffer[i].base;
+      paddr64_t nextBase = buffer[i+1].base;
       // populate list nodes - note we place the block structures 
       // at the start of each available memories.
-      memoryBlock* pmblk = reinterpret_cast<memoryBlock*>(mem::paddrToVaddr(base));
+      memoryBlock* pmblk = reinterpret_cast<memoryBlock*>(paddrToVaddr(base));
       pmblk->length = buffer[i].length;
       if(i == index-1){
         pmblk->next = nullptr;
       }
       else{
-        pmblk->next = reinterpret_cast<memoryBlock*>(mem::paddrToVaddr(nextBase));
+        pmblk->next = reinterpret_cast<memoryBlock*>(paddrToVaddr(nextBase));
       }
     }
     // remember to place the start
-    m_head.next = 
-      reinterpret_cast<memoryBlock*>(mem::paddrToVaddr(buffer[0].base));
+    head.next = 
+      reinterpret_cast<memoryBlock*>(paddrToVaddr(buffer[0].base));
   }
 
-  void memoryList::printEntries() const{
-    memoryBlock* mptr = m_head.next;
+  void printEntries(){
+    memoryBlock* mptr = head.next;
     std::size_t index = 0;
     while(mptr != nullptr){
       kout << intmode::hex 
@@ -54,13 +60,21 @@ namespace mem{
     }
   }
 
-  void memoryManager::printEntries() const{
-    m_freelist.printEntries();
+  memoryBlock* getHead(){
+    return head.next;
   }
 
-  void* memoryManager::allocHeap(std::size_t nbytes){
+  void setHead(memoryBlock* mptr){
+    head.next = mptr;
+  }
+} // namespace memory::list
+
+namespace memory::pmm{
+
+  void* allocHeap(std::size_t nbytes){
     // walk the memory list to find the earliest suitable block size
     // return the virtual address of the allocated chunk
+    kout << "within allocheap" << '\n';
     if(nbytes <= 0){
       return reinterpret_cast<void*>(-1);
     }
@@ -71,24 +85,24 @@ namespace mem{
     }
     nbytes = round(nbytes, 16);
     // define placeholders to walk the memory list
-    memoryBlock* mptr = m_freelist.head();
-    memoryBlock* next = mptr->next;
-    memoryBlock* prev = nullptr;
+    list::memoryBlock* mptr = list::getHead();
+    list::memoryBlock* next = mptr->next;
+    list::memoryBlock* prev = nullptr;
     std::size_t index = 0;
     while(mptr != nullptr){
       if(mptr->length > nbytes){
         // we need to reduce the size of the chunk
         std::uint64_t length = mptr->length;
         std::uint64_t allocsize = nbytes;
-        mem::vaddr64_t allocAddr = reinterpret_cast<mem::vaddr64_t>(mptr);
+        vaddr64_t allocAddr = reinterpret_cast<vaddr64_t>(mptr);
         kout << allocAddr << '\n';
         //kout << reinterpret_cast<vaddr64_t>(mptr) << '\n';
         //kout << reinterpret_cast<vaddr64_t>(allocated) << '\n';
-        mptr = reinterpret_cast<memoryBlock*>(
+        mptr = reinterpret_cast<list::memoryBlock*>(
             reinterpret_cast<vaddr64_t>(mptr) + allocsize);
         // we shall define a chunk of allocated memory to include both the next free block, 
         // and the length of the allocated chunk
-        memoryBlock* allocated = reinterpret_cast<memoryBlock*>(allocAddr);
+        list::memoryBlock* allocated = reinterpret_cast<list::memoryBlock*>(allocAddr);
         allocated->next = mptr;  // note this should not be used!
         allocated->length = allocsize;
         kout << reinterpret_cast<vaddr64_t>(mptr) << '\n';
@@ -99,7 +113,7 @@ namespace mem{
         mptr->next = next;
         mptr->length = length - allocsize;
         if(index == 0){
-          m_freelist.setHead(mptr);
+          list::setHead(mptr);
         }
         // +1 is required to move to the required heap memory
         return reinterpret_cast<void*>(allocated+1); 
@@ -114,7 +128,7 @@ namespace mem{
     return reinterpret_cast<void*>(-1);
   }
 
-  mem::vaddr64_t memoryManager::allocStack(std::size_t nbytes){
+  vaddr64_t allocStack(std::size_t nbytes){
     // walk the memory list to find the latest suitable block size. stack 
     // should be allocated from the top of the address space.
     // return the virtual address of the allocated chunk
@@ -127,9 +141,9 @@ namespace mem{
       nbytes = 32 + nbytes;
     }
     // define placeholders because this is a singly linked list
-    memoryBlock* mptr = m_freelist.head();
-    memoryBlock* next = mptr->next;
-    memoryBlock* prev = nullptr;
+    list::memoryBlock* mptr = list::getHead();
+    list::memoryBlock* next = mptr->next;
+    list::memoryBlock* prev = nullptr;
     // walk the memory list
     while(next != nullptr){
       prev = mptr;
@@ -139,17 +153,17 @@ namespace mem{
     // next is nullptr, so mptr points to the last entry
     // allocate from the top of available ram
     std::uint64_t allocsize = nbytes;
-    memoryBlock* allocated = reinterpret_cast<memoryBlock*>(
+    list::memoryBlock* allocated = reinterpret_cast<list::memoryBlock*>(
         reinterpret_cast<vaddr64_t>(mptr) - allocsize);
     // finish the bookkeeping, write data at the memory chunks
     allocated->next=nullptr;
     allocated->length = allocsize;
     // update mptr to point to the 
     mptr->length = mptr->length - allocsize;
-    return reinterpret_cast<mem::vaddr64_t>(allocated+1);
+    return reinterpret_cast<vaddr64_t>(allocated+1);
   }
 
-  void memoryManager::free(void* base){
+  void free(void* base){
     // free must be provided a base address of a allocated memory chunk
     // n.b free puts the next address and length in an allocated block
     // all cases:
@@ -157,36 +171,35 @@ namespace mem{
     // free chunk_*         need to check if chunk_* is at the start of the memory map
     // chunk_* chunk        
     // chunk chunk_*
-    memoryBlock* mptr = reinterpret_cast<memoryBlock*>(base);
-    kout << "beginning address of memory: " << reinterpret_cast<mem::vaddr64_t>(mptr) << '\n'
-         << "beginning addrsss of chunk: " << reinterpret_cast<mem::vaddr64_t>(mptr - 1) << '\n';
+    list::memoryBlock* mptr = reinterpret_cast<list::memoryBlock*>(base);
+    kout << "beginning address of memory: " << reinterpret_cast<vaddr64_t>(mptr) << '\n'
+         << "beginning addrsss of chunk: " << reinterpret_cast<vaddr64_t>(mptr - 1) << '\n';
     // set the mptr to contain the memory chunk's header information 
     mptr = mptr - 1;
     kout << "length :: " << mptr->length << " ::address:: " << reinterpret_cast<vaddr64_t>(mptr) 
          << '\n';
-    kout << "head: " << reinterpret_cast<mem::vaddr64_t>(m_freelist.head()) << '\n';
+    kout << "head: " << reinterpret_cast<vaddr64_t>(list::getHead()) << '\n';
     // easy case: bottom of heap, check with the next block if it is the head
     if( 
         (reinterpret_cast<vaddr64_t>(mptr) + mptr->length) == 
-        reinterpret_cast<vaddr64_t>(m_freelist.head()) 
+        reinterpret_cast<vaddr64_t>(list::getHead) 
       ){
-
       // coalesce the head of freelist and the current block
-      mptr->length = mptr->length + m_freelist.head()->length;
-      mptr->next = m_freelist.head()->next;
-      m_freelist.setHead(mptr);
+      mptr->length = mptr->length + list::getHead()->length;
+      mptr->next = list::getHead()->next;
+      list::setHead(mptr);
       return;
     }
     // we need to find which two memory blocks on the free list, the current allocated memory
     // is between
-    memoryBlock* current = m_freelist.head();
-    memoryBlock* next = current->next;
+    list::memoryBlock* current = list::getHead();
+    list::memoryBlock* next = current->next;
     // the memory block is less than the first guy, and is adjacent to an
     // allocated memory block
-    if(reinterpret_cast<mem::vaddr64_t>(mptr) < reinterpret_cast<mem::vaddr64_t>(current)){
+    if(reinterpret_cast<vaddr64_t>(mptr) < reinterpret_cast<vaddr64_t>(current)){
       kout << "we here" << '\n';
-      mptr->next = m_freelist.head();
-      m_freelist.setHead(mptr);
+      mptr->next = list::getHead();
+      list::setHead(mptr);
       return;
     }
     // allocated memory block > memorylist.head, so we need to walk the memory list to 
@@ -224,6 +237,4 @@ namespace mem{
     return ((src + multiple/2) / multiple) * multiple;
   }
 
-  
-  memoryManager pmm{};
-} // namespace mem
+} // namespace memory::pmm;

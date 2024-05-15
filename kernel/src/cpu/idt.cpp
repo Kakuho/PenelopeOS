@@ -19,12 +19,6 @@ extern "C" void generalIRQ(int x){
 }
 
 extern "C" void contextSwitchISR(void* stackaddr){
-  /*
-  mem::vaddr64_t saddr = reinterpret_cast<mem::vaddr64_t>(stackaddr);
-  std::uint64_t* prdx = reinterpret_cast<std::uint64_t*>(saddr - 8);
-  std::uint64_t* prcx = reinterpret_cast<std::uint64_t*>(saddr - 16);
-  std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 24);
-  */
   std::uint64_t* saddr = reinterpret_cast<std::uint64_t*>(stackaddr);
   // above the stack pointer
   //std::uint64_t* prsp = reinterpret_cast<std::uint64_t*>(saddr + 1);
@@ -38,7 +32,7 @@ extern "C" void contextSwitchISR(void* stackaddr){
   std::uint64_t* prsi = reinterpret_cast<std::uint64_t*>(saddr - 6);
   std::uint64_t* prflags = reinterpret_cast<std::uint64_t*>(saddr - 7);
   kout << "AN INTERRUPT HAS OCCURED" << '\n'
-       << reinterpret_cast<mem::vaddr64_t>(saddr) << '\n'
+       << reinterpret_cast<memory::vaddr64_t>(saddr) << '\n'
        << "rax = " << *prax << '\n'
        << "rbx = " << *prbx << '\n'
        << "rcx = " << *prcx << '\n'
@@ -52,10 +46,10 @@ extern "C" void contextSwitchISR(void* stackaddr){
   kout << "END OF HANDLING" << '\n';
 }
 
-namespace idt{
+namespace x8664::idt{
   idtGate constructIdtGate(void(*handler_address)()){
     // similiar to call gates
-    mem::vaddr64_t vaddr = reinterpret_cast<mem::vaddr64_t>(handler_address);
+    memory::vaddr64_t vaddr = reinterpret_cast<memory::vaddr64_t>(handler_address);
     std::uint16_t vaddr0 = vaddr & (0xFFFF);
     std::uint16_t vaddr1 = (vaddr & (0xFFFFull << 0x10)) >> 0x10 ;
     std::uint32_t vaddr2 = (vaddr & (0xFFFF'FFFFul << 0x20)) >> 0x20;
@@ -82,9 +76,9 @@ namespace idt{
   void initialiseIdt(){
     // set the descriptor
     idtor.limit = sizeof(idt_table)-1;
-    idtor.offset = reinterpret_cast<mem::vaddr64_t>(&idt_table);
+    idtor.offset = reinterpret_cast<memory::vaddr64_t>(&idt_table);
     // set the table
-    kout << intmode::hex << reinterpret_cast<mem::vaddr64_t>(&isr_0) << '\n';
+    kout << intmode::hex << reinterpret_cast<memory::vaddr64_t>(&isr_0) << '\n';
     for (std::uint8_t i = 0; i < 34; i++){
       setIdtEntry(i, reinterpret_cast<void(*)()>(isr[i]));
     }

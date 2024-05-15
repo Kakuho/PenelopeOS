@@ -6,10 +6,10 @@
 #include "limine/requests.hpp"
 
 namespace limine::requests{
-extern volatile limine_hhdm_request hhdm_request;
-extern volatile limine_memmap_request memorymap_request;
-extern volatile limine_kernel_address_request kernel_addr_req;
-}
+  extern volatile limine_hhdm_request hhdm_request;
+  extern volatile limine_memmap_request memorymap_request;
+  extern volatile limine_kernel_address_request kernel_addr_req;
+} // namespace limine::requests
 
 namespace memory{
   // a bunch of miscellenaeous memory
@@ -26,13 +26,19 @@ namespace memory{
 
   void printMemoryMap();
 
+  vaddr64_t getKernelVirtualAddress();
+
+  inline void printKernelAddress(){
+    vaddr64_t kerneladdr = getKernelVirtualAddress();
+    kout << "kernel vaddr::" << kerneladdr << ":: kernel paddr :: " 
+         << vaddrToPaddr(kerneladdr) << '\n';
+  }
+
   void probeMemory(std::size_t index);
 
   std::uint64_t calculateAvailableMemory();
 
   void printPageFrames();
-
-  vaddr64_t getKernelVirtualAddress();
 
   void upperLimitProbe();
 
@@ -42,6 +48,6 @@ namespace memory{
   void corruptMemory();
   /* DO NOT USE */
 
-} // namespace mem
+} // namespace memory
 
 #endif

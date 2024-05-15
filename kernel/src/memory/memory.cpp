@@ -2,6 +2,7 @@
 
 namespace memory{
   using namespace limine; // all requests are made using limine::requests
+                          
   void printMemoryMap(){
     // prints in the format:
     // paddr \t vaddr \t length \t type

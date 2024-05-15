@@ -2,15 +2,14 @@
 #include "memory/memory.hpp"
 #include <cstdint>
 
-namespace gdt{
-
+namespace x8664::gdt{
   SegmentDescriptor constructSegtor(
       void* base_address, std::uint16_t limit, 
       std::uint8_t accessbyte, std::uint8_t flagslimit){
     // note: in long mode address and limit is ignored for stack segment, 
     // code segment
     // parse the virtual address
-    mem::vaddr64_t vaddr = reinterpret_cast<mem::vaddr64_t>(base_address);
+    memory::vaddr64_t vaddr = reinterpret_cast<memory::vaddr64_t>(base_address);
     std::uint16_t vaddr0 = vaddr & 0xFFFF;
     std::uint8_t vaddr1 = vaddr & (0xFFul << 0x10) >> 0x10;
     std::uint8_t vaddr2 = vaddr & (0xFFul << 0x18) >> 0x18;
@@ -31,7 +30,7 @@ namespace gdt{
 
   TSSDescriptor constructTsstor(void* base_address, std::uint32_t limit){
     // parse the vitrual address
-    mem::vaddr64_t vaddr = reinterpret_cast<mem::vaddr64_t>(base_address);
+    memory::vaddr64_t vaddr = reinterpret_cast<memory::vaddr64_t>(base_address);
     std::uint16_t vaddr0 = vaddr & 0xFFFF;
     std::uint8_t vaddr1 = (vaddr & (0xFFul << 0x10)) >> 0x10;
     std::uint8_t vaddr2 = (vaddr & (0xFFul << 0x18)) >> 0x18;
@@ -85,5 +84,4 @@ namespace gdt{
   GdtTable table{};
   std::uint16_t tablesize = sizeof(table) - 1;
   GdtDescriptor descriptor{};
-
-}
+} // namespace x8664::gdt

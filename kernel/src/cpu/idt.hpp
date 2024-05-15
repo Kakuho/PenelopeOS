@@ -1,6 +1,6 @@
 #include <cstdint>
-#include <memory/memory.hpp>
-#include <kostream.hpp>
+#include "memory/memory.hpp"
+#include "kostream.hpp"
 
 extern "C" void load_idt(void* idtor_address);
 extern "C" void enable_interrupts();
@@ -9,7 +9,7 @@ extern "C" void sayHi(int x);
 extern "C" void(*isr[])();
 extern "C" void(*isr[])();
 
-namespace idt{
+namespace x8664::idt{
   // https://wiki.osdev.org/Interrupt_Descriptor_Table
   // intel manual vol3a ??
   struct __attribute__((packed)) idtDescriptor{
