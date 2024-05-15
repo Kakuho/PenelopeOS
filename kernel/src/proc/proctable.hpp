@@ -5,6 +5,7 @@
 
 namespace proc{
   using pid_t = std::int32_t;
+
   enum class state{
     free,             // proc table entry is unused
     current,          // currently executing process
