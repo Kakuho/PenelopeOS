@@ -1,6 +1,6 @@
 #include "features.hpp"
 
-void features::probePhysicalWidth(){
+void x8664::features::probePhysicalWidth(){
   //cpuid normally references 32 bit registers eax, ebx ect.
   std::uint32_t eax, ebx, ecx, edx;
   // probe physaddr
@@ -9,13 +9,14 @@ void features::probePhysicalWidth(){
   kout << intmode::dec << "MAXPHYSADDR = " << width << '\n';
 }
 
-bool features::disablePaging(){
+bool x8664::features::disablePaging(){
   std::uint32_t newcr0 = readcr0();
   newcr0 &= 1 << 31;
   writecr0(newcr0);
+  return true;
 }
 
-void features::probeLinearWidth(){
+void x8664::features::probeLinearWidth(){
   //cpuid normally references 32 bit registers eax, ebx ect.
   std::uint32_t eax, ebx, ecx, edx;
   // probe physaddr
@@ -25,7 +26,7 @@ void features::probeLinearWidth(){
   // is 48 :D
 }
 
-void features::probex2apic(){
+void x8664::features::probex2apic(){
   std::uint32_t eax, ebx, ecx, edx;
   // probe x2apic
   __get_cpuid(0x01, &eax, &ebx, &ecx, &edx);
@@ -38,7 +39,7 @@ void features::probex2apic(){
   }
 }
 
-void features::probeLapic(){
+void x8664::features::probeLapic(){
   std::uint32_t eax = 1;
   std::uint32_t ebx, ecx, edx;
   // probe x2apic
@@ -52,21 +53,21 @@ void features::probeLapic(){
   }
 }
 
-mem::paddr64_t features::getPML4(){
+memory::paddr64_t x8664::features::getPML4(){
   // the physical address of the pml4 table is located in bits 54:12 of cr3
   std::uint64_t cr3 = readcr3();
   std::uint64_t mask = (0xFFFFFFF << 12);
-  mem::paddr64_t addr = (cr3 & mask) >> 12;
+  memory::paddr64_t addr = (cr3 & mask) >> 12;
   return addr;
 } 
 
-void features::probecr4(){
+void x8664::features::probecr4(){
   std::uint64_t result = readcr4();
   kout << intmode::dec << "cr4 = " << result << intmode::bin << ' ' << result << 
        '\n';
 }
 
-void features::probecr0(){
+void x8664::features::probecr0(){
   std::uint64_t result = readcr0();
   kout << "cr0 =" 
        << intmode::dec << ' '  << result << ' '
@@ -76,7 +77,7 @@ void features::probecr0(){
 }
 
 // 4.5.2 details the fields of cr3
-void features::probecr3(){
+void x8664::features::probecr3(){
   std::uint64_t result = readcr3();
   kout << "cr3 =" 
        << intmode::dec << ' '  << result << ' '
@@ -84,5 +85,3 @@ void features::probecr3(){
        << intmode::bin << "0b" << result 
        <<  '\n';
 }
-
-

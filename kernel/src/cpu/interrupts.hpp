@@ -1,22 +1,20 @@
 #ifndef INTERRUPT_HPP
 #define INTERRUPT_HPP
 #include <cstdint>
-#include <memory/memory.hpp>
+#include "memory/memory.hpp"
 
-extern "C" {
-  void dosti();
-  void dointo();
-  void clear_interrupts();
-  void invokeinterrupt1();
-  void invokeinterrupt2();
-  void invokeinterrupt3();
-  void invokeinterrupt4();
-  void invokeinterrupt5();
-  void invokeinterrupt6();
-  void invokeinterrupt33();
-}
+extern "C" void dosti();
+extern "C" void dointo();
+extern "C" void clear_interrupts();
+extern "C" void invokeinterrupt1();
+extern "C" void invokeinterrupt2();
+extern "C" void invokeinterrupt3();
+extern "C" void invokeinterrupt4();
+extern "C" void invokeinterrupt5();
+extern "C" void invokeinterrupt6();
+extern "C" void invokeinterrupt33();
 
-namespace inter{
+namespace x8664::interrupts{
   bool isDoTripleFault();
 
   void invokeInterrupt(std::uint8_t no);

@@ -1,14 +1,14 @@
 #ifndef GDT_HPP
 #define GDT_HPP
 #include <cstdint>
-#include <memory/memory.hpp>
-#include <kostream.hpp>
+#include "memory/memory.hpp"
+#include "kostream.hpp"
 
 extern "C" void load_gdt(void* address);
 extern "C" void load_tsr(std::uint16_t index);
 extern "C" void reload_segments();
 
-namespace gdt{
+namespace x8664::gdt{
 
   // the os shall operate in a long / flat mode. This is 
   // protected flat mode 3.2.2 in the intel manual
@@ -35,7 +35,8 @@ namespace gdt{
 
   SegmentDescriptor constructSegtor(
       void* base_address, std::uint16_t limit, 
-      std::uint8_t accessbyte, std::uint8_t flagslimit);
+      std::uint8_t accessbyte, std::uint8_t flagslimit
+  );
 
   // https://wiki.osdev.org/Task_State_Segment long mode
   // intel manual vol3a 8.7 - tss in 64bit mode
@@ -89,14 +90,13 @@ namespace gdt{
     TSSDescriptor tss;
   };
 
-  extern std::uint16_t tablesize;
-
   void setupGdt(GdtTable& _gdt);
   bool initialiseGDT();
 
+  extern std::uint16_t tablesize;
   extern TSS tss;
   extern GdtTable table;
   extern GdtDescriptor descriptor;
-} // namespace gdt
+} // namespace x8664::gdt
 
 #endif
