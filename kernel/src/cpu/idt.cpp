@@ -60,7 +60,7 @@ namespace x8664::idt{
           << "vaddr2: " << vaddr2 << '\n';
     return idtGate{
       .offset0 = vaddr0,
-      .segment_selector = 0b0101'000,  
+      .segment_selector = 0b001'000, 
             // we only want to select the kernel code segment -> check limine protocol.md
       .p_dpl_gatetype_ist = 0b1'00'0'1110'00000'000,
       .offset1 = vaddr1,

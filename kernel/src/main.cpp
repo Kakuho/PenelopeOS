@@ -48,13 +48,15 @@ extern "C" void _start() {
   }
 
   limine::initialiseFramebuffer();
-  //x8664::gdt::initialiseGDT();
+  x8664::gdt::initialiseGDT();
   x8664::idt::initialiseIdt();
+
   memory::printMemoryMap();
   memory::list::InitialiseHeaders();
   memory::list::printEntries();
 
   //---------------------------------------------------------------//
+
 
   x8664::interrupts::invokeInterrupt(0);
 

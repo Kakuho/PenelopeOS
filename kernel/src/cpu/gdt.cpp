@@ -60,7 +60,7 @@ namespace x8664::gdt{
 
   void setupGdt(GdtTable& _gdt){
     _gdt.nullseg     = constructSegtor(0, 0, 0, 0);             
-                                                                // flaglimit
+                                    //base //lim   // accessb   // flaglimit
     _gdt.kernel_code = constructSegtor(0, 0xFFFF, 0b1001'1010, 0b1010'1111);
     _gdt.kernel_data = constructSegtor(0, 0xFFFF, 0b1001'0010, 0b1100'1111);
     _gdt.user_code   = constructSegtor(0, 0xFFFF, 0b1111'1010, 0b1010'1111);
@@ -69,9 +69,13 @@ namespace x8664::gdt{
   }
 
   bool initialiseGDT(){
+    kout << "INITIALISAING GDT" << '\n';
     setupGdt(gdt::table);
     descriptor.limit = tablesize;
     descriptor.offset = reinterpret_cast<std::uint64_t>(&gdt::table); 
+    kout << "gdt vbase: " << reinterpret_cast<std::uint64_t>(&gdt::table) << '\n';
+    kout << "gdt pbase: " << reinterpret_cast<std::uint64_t>(
+        memory::vaddrToPaddr(reinterpret_cast<std::uint64_t>(&gdt::table))) << '\n';
     load_gdt(&descriptor);
     load_tsr(0b00101'000);
     reload_segments();
