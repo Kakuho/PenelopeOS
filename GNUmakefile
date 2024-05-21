@@ -31,19 +31,17 @@ all: $(IMAGE_NAME).iso
 .PHONY: all-hdd
 all-hdd: $(IMAGE_NAME).hdd
 
-# i changed to hda because it is easier than cdrom
-
 .PHONY: run
 run: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -boot d
 
 .PHONY: run-debug
 run-debug: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d -serial stdio -d int -M smm=off
+	qemu-system-x86_64 -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -boot d -serial stdio -d int -M smm=off
 
 .PHONY: run-gdb
 run-gdb: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -s -S -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d 
+	qemu-system-x86_64 -s -S -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -boot d & gdb -ex "target remote localhost:1234" -ex "symbol-file ./kernel/bin/kernel"
 
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso

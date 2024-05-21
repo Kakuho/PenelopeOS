@@ -53,6 +53,8 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 
 # Internal flags shared by both C and C++ compilers.
 override SHARED_FLAGS := \
+		-g \
+		-O0 \
     -Wall \
     -Wextra \
     -ffreestanding \

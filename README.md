@@ -8,8 +8,16 @@ advanced features such as memory paging / swapping. Chisaka shall be a grander p
 
 ## Building and Running
 
- from root, type:
+To compile the operating system to an .iso and run, type:
  
 	make run
 
-which compiles the operating system to an iso file and spawns a x86_64 processor to run it. More details can be found below.
+To run gdb for debugging purposes, type:
+
+	make run-gdb
+
+To run with qemu interrupt information, type:
+
+	make run-debug.
+
+More details can be found in the GNUMakefiles.
