@@ -8,7 +8,14 @@ namespace x8664::interrupts{
   }
 
   void invokeInterrupt(std::uint8_t no){
-    invokeinterrupt1();
+    switch(no){
+      case 1:
+        invokeinterrupt1();
+        break;
+      case 5:
+        invokeinterrupt5();
+        break;
+    }
   }
 
   void parseAddress(void* address){

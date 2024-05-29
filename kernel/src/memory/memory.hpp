@@ -44,6 +44,11 @@ namespace memory{
 
   void lowerLimitProbe();
 
+  vaddr64_t FormLinearAddress(std::uint16_t pm4le_i, std::uint16_t pdpte_i, 
+      std::uint16_t pde_i, std::uint16_t pt_i, std::uint16_t offset);
+
+  void ExtractPagingIndices(vaddr64_t vaddr);
+
   /* DO NOT USE */
   void corruptMemory();
   /* DO NOT USE */

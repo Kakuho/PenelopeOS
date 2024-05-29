@@ -86,6 +86,7 @@ namespace memory{
     }
   }
 
+
   vaddr64_t getKernelVirtualAddress(){
     return requests::kernel_addr_req.response->virtual_base;
   }
@@ -120,6 +121,44 @@ namespace memory{
       kout << "paddr = " << paddr << " :: vaddr = " << paddrToVaddr(paddr)
            << " :: *pch = " << *pch << '\n';
     }
+  }
+
+  vaddr64_t FormLinearAddress(std::uint16_t pm4le_i, std::uint16_t pdpte_i, 
+      std::uint16_t pde_i, std::uint16_t pt_i, std::uint16_t offset){
+    vaddr64_t vaddr = 0;
+    // canoncality requirement
+    vaddr |= 0xFFFF;
+    vaddr <<= 9;
+    // pm4le's index
+    vaddr |= (pm4le_i & 0x1FF);
+    vaddr <<= 9;
+    // pdpte's index
+    vaddr |= (pdpte_i & 0x1FF);
+    vaddr <<= 9;
+    // pde's index
+    vaddr |= (pde_i & 0x1FF);
+    vaddr <<= 9;
+    // pt's index
+    vaddr |= (pt_i & 0x1FF);
+    vaddr <<= 12;
+    // the offset
+    vaddr |= (offset & 0xFFF);
+    return vaddr;
+  }
+
+  void ExtractPagingIndices(vaddr64_t vaddr){
+    // a reverse of the FormLinearAddress
+    std::uint16_t pageoffset = (vaddr & 0xFFF);
+    std::uint16_t pt_i = (vaddr & (0x1FFull << 12)) >> 12;
+    std::uint16_t pde_i = (vaddr & (0x1FFull << 21)) >> 21;
+    std::uint16_t pdpte_i = (vaddr & (0x1FFull << 30)) >> 30;
+    std::uint16_t pm4le_i = (vaddr & (0x1FFull << 39)) >> 39;
+    kout << "vaddr :: " << vaddr   << '\n'
+         << "page offset :: " << pageoffset << '\n'
+         << "pagetable index :: " << pt_i << '\n'
+         << "page directory index :: " << pde_i << '\n'
+         << "page directory pointer index :: " << pdpte_i << '\n'
+         << "pm4l index :: " << pm4le_i << '\n';
   }
 
   /* DO NOT USE*/

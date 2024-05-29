@@ -11,6 +11,13 @@ writecr0:
   movq %rdi, %cr0
   ret;
 
+.globl readcr2
+.type readcr2, @function
+readcr2:
+  xorq %rax, %rax
+  movq %cr2, %rax 
+  ret
+
 .globl readcr3
 .type readcr3, @function
 readcr3:

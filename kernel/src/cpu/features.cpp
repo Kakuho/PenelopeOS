@@ -4,7 +4,7 @@ void x8664::features::probePhysicalWidth(){
   //cpuid normally references 32 bit registers eax, ebx ect.
   std::uint32_t eax, ebx, ecx, edx;
   // probe physaddr
-  __get_cpuid(0x80000008, &eax, &ebx, &ecx, &edx);
+  __get_cpuid(0x8000'0008, &eax, &ebx, &ecx, &edx);
   std::uint8_t width = eax & 0b1111'1111;
   kout << intmode::dec << "MAXPHYSADDR = " << width << '\n';
 }

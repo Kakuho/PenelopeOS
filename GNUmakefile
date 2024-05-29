@@ -31,9 +31,19 @@ all: $(IMAGE_NAME).iso
 .PHONY: all-hdd
 all-hdd: $(IMAGE_NAME).hdd
 
+
+
 .PHONY: run
 run: $(IMAGE_NAME).iso
 	qemu-system-x86_64 -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -boot d
+
+.PHONY: run-std
+run-std: $(IMAGE_NAME).iso
+	clear && qemu-system-x86_64 -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -serial stdio -boot d
+
+.PHONY: run-int
+run-int: $(IMAGE_NAME).iso
+	qemu-system-x86_64 -M q35 -m 8G -cdrom $(IMAGE_NAME).iso -boot d -d int -M smm=off
 
 .PHONY: run-debug
 run-debug: $(IMAGE_NAME).iso
@@ -49,7 +59,7 @@ run-uefi: ovmf $(IMAGE_NAME).iso
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -m 8G -hda $(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd

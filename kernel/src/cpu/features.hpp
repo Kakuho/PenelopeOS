@@ -8,6 +8,7 @@
 
 extern "C" std::uint64_t readcr0();
 extern "C" void writecr0(std::uint32_t val);
+extern "C" std::uint64_t readcr2();
 extern "C" std::uint64_t readcr3();
 extern "C" std::uint64_t readcr4();
 

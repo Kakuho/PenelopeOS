@@ -39,4 +39,5 @@ namespace x8664::interrupts{
 
   extern interruptGate idt[];
 }
+
 #endif

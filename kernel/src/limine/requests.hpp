@@ -22,6 +22,18 @@ inline bool is_limine_supported(){
   }
 };
 
+/*
+inline bool dtb_feature_okay(){
+  if(limine::requests::dtb_request.response != NULL){
+    kout << reinterpret_cast<std::uint64_t>(limine::requests::dtb_request.response->dtb_ptr) << '\n';
+    kout << "NO EROR" << '\n';
+  }
+  else{
+    kout << "ERROR IN INNIT DTB!" << '\n';
+  }
+}
+*/
+
   namespace requests{
 
   extern volatile limine_framebuffer_request framebuffer_request;
@@ -31,6 +43,8 @@ inline bool is_limine_supported(){
   extern volatile limine_hhdm_request hhdm_request;
 
   extern volatile limine_kernel_address_request kernel_addr_req;
+
+  extern volatile limine_dtb_request dtb_request;
 
   } // namespace limine::requests
 

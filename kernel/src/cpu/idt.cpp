@@ -1,5 +1,6 @@
 #include "idt.hpp"
 #include "memory/memory.hpp"
+#include "features.hpp"
 
 // some cute interrupt handler :D
 extern "C" void sayHi(int x){
@@ -44,6 +45,11 @@ extern "C" void contextSwitchISR(void* stackaddr){
        << "rflags = " << *prflags << '\n'
        << "we tryna to ctxt sw" << '\n';
   kout << "END OF HANDLING" << '\n';
+}
+
+extern "C" void PageFaultISR(memory::vaddr64_t vaddr){
+  kout << "PAGEFAULTING" << '\n';
+  kout << "faulting address: " << readcr2() << '\n';
 }
 
 namespace x8664::idt{

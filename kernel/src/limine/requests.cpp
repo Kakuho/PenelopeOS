@@ -27,4 +27,11 @@ volatile limine_kernel_address_request kernel_addr_req{
   .response = nullptr
 };
 
+volatile limine_dtb_request dtb_request{
+  .id = LIMINE_DTB_REQUEST,
+  .revision = 0,
+  .response = nullptr
+};
+
+
 } // namespace limine::requests

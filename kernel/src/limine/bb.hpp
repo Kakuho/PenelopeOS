@@ -2,6 +2,7 @@
 #define bb_hpp
 #include <cstdint>
 #include "requests.hpp"
+#include "memory/memory.hpp"
 #include "cpu/util.hpp"
 
 
@@ -24,6 +25,8 @@ inline void initialiseFramebuffer(){
   }
 }
 
+
+inline constexpr memory::paddr64_t pagingTable = 0x7ff46000;
 
 } // namespace limine
 
