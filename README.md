@@ -21,3 +21,7 @@ To run with qemu interrupt information, type:
 	make run-debug.
 
 More details can be found in the GNUMakefiles.
+
+## 2025 Update:
+
+Development of PenelopeOS has been merged to Chisaka. Further work on this repository will be stopped.
